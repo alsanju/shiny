@@ -1,1 +1,3 @@
-# shiny_examples
+# Shiny
+
+This is my Shiny repository
