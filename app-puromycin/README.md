@@ -6,3 +6,5 @@ In addition, you can obtain a ggplot that include **your filtered data from your
 Puromycin is a dataset in R, and contain data about the reaction velocity versus substrate concentration in an enzymatic reaction involving untreated cells or cells treated with Puromycin.
 
 To run it locally you'll need to install the latest versions of [Shiny](http://shiny.rstudio.com/) and [ggplot2](http://ggplot2.org/).
+
+The applet was made as a project for Coursera's class on Developing Data Products, and is published in http://alba-sanchis-juan.shinyapps.io/app-puromycin/  and  http://rpubs.com/littlepadawan/app-puromycin.
