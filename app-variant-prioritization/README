@@ -3,3 +3,5 @@ This is the source code for a variant filtering app which runs on R and Shiny.
 This app allows you to perform the upload of a file and the filtering of this data depending of the different variables. You can download your filtered data in a txt file. 
 
 To run it locally you'll need to install the latest versions of Shiny and DT.
+
+The applet was made as a part of my final master project, and is published in http://alba-sanchis-juan.shinyapps.io/app-filtering/ 
