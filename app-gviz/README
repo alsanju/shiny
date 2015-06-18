@@ -1,0 +1,8 @@
+This is the source code for a Gviz app (a bioconductor package) which runs on R and Shiny.
+
+This app allows you to get the information for one gene through Biomart using R, and download your data in a txt file. You can filter your information by the gene name or the Ensembl ID, depending the assembly GRCh37 or GRCh38.
+In a different tab is shown the gene location and the transcripts representation for this gene. 
+
+To run it locally you'll need to install the latest versions of Shiny, Gviz and biomaRt.
+
+The applet was made as a part of my final master project.
