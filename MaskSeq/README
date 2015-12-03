@@ -1,0 +1,11 @@
+This is the source code for a masking sequence app which runs on R and Shiny.
+
+This app has been performed to make easier the oligo design, and allows the user to mask with 'N' different positions in a specific sequence that have a Minor Allele Frequency higer than a scpecific value.
+This sequence can be the exon sequences of a gene or a specific variation. The 5'UTR, 3'UTR and intronic flanking regions are specified by the user.
+
+To run it locally you'll need to install the latest versions of Shiny and RSQLite packages.
+Also you need the reference genome and your sqlite database.
+
+The data is automaticatly saved in the output directory.
+
+This applet is pending to be published in http://alba-sanchis-juan.shinyapps.io 
