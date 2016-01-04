@@ -17,12 +17,12 @@ shinyServer(
       }
     })
     
-    ##Ensembl assembly selection
+    ##Ensembl build selection
     ensembl <- reactive({
       if (input$version == 1){
         ensembl <- useMart(biomart="ENSEMBL_MART_ENSEMBL", host="grch37.ensembl.org", path="/biomart/martservice" ,dataset="hsapiens_gene_ensembl")
       }else{
-        ensembl <- useMart("ensembl",dataset="hsapiens_gene_ensembl")
+        ensembl <- useMart(biomart = "ENSEMBL_MART_ENSEMBL", host = "www.ensembl.org", dataset = "hsapiens_gene_ensembl")
       }
     })
     
@@ -88,6 +88,13 @@ shinyServer(
       }
     )
     
+    ##Conditional bamfile input 
+    output$conditional_plotTrack <- renderUI({
+      if ("PlotTrack" %in% input$tracks_to_plot){
+        textInput("bamfile", "/path/to/bamfile", value = "")
+      }
+    })
+    
     ##PlotTrack output
     output$plot <- renderPlot({
       
@@ -110,7 +117,7 @@ shinyServer(
       list_tracks <- list()
       
       if ("IdeogramTrack" %in% input$tracks_to_plot){          
-        Track <- IdeogramTrack(      genome = "hg19"
+        Track <- IdeogramTrack(      genome = "hg38"
                                      , chromosome = chr
                                      , showBandId = TRUE
                                      , cex.bands = 0.5
@@ -127,21 +134,35 @@ shinyServer(
       
       if ("GeneRegionTrack" %in% input$tracks_to_plot){
         Track <- GeneRegionTrack (    query_result
-                                    , genome = "hg19"
-                                    , chromosome = chr
-                                    , end = end
-                                    , start = start
-                                    , transcriptAnnotation = "transcript"
-                                    , showId = TRUE 
-                                    , name = "ENSEMBL"
+                                      , chromosome = chr
+                                      , end = end
+                                      , start = start
+                                      , transcriptAnnotation = "transcript"
+                                      , showId = TRUE 
+                                      , name = "ENSEMBL"
         )
         list_tracks <- c(list_tracks, Track)
       }
       
+      if ("PlotTrack" %in% input$tracks_to_plot){
+        validate(
+          need(input$bamfile, 'Please write the path of your bam file')
+        )
+        CovTrack <- DataTrack (    range = bam ##input$bamfile
+                                   , genome = genome
+                                   , type = c("l","g")
+                                   , name = basename(input$bamfile)
+                                   , chromosome = chr
+                                   , from = start
+                                   , to = end
+        )
+        list_tracks <- c(list_tracks, CovTrack)
+      }      
+      
       plotTrack <- plotTracks(  list_tracks
-                              , from = start
-                              , to = end
-                              , main = input$gene
+                                , from = start
+                                , to = end
+                                , main = input$gene
       )
       
       #Creating progress bar
