@@ -1,6 +1,6 @@
 shinyUI(fluidPage(
   
-  titlePanel("Gviz app"),
+  titlePanel("GeneCov"),
   br(),
   sidebarLayout(  
     sidebarPanel(
@@ -27,7 +27,7 @@ shinyUI(fluidPage(
       ),
       
       conditionalPanel(
-        'input.dataset === "plotTrack"',
+        'input.dataset === "PlotTrack"',
         
         checkboxGroupInput('tracks_to_plot',
                            'Tracks to plot:',
@@ -41,7 +41,7 @@ shinyUI(fluidPage(
       tabsetPanel(
         id='dataset',
         tabPanel("Gene data", dataTableOutput("data_table")),
-        tabPanel("plotTrack", plotOutput("plot"))
+        tabPanel("PlotTrack", plotOutput("plot"))
       )
     )
   )
