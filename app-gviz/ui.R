@@ -1,7 +1,3 @@
-library(shiny)
-library(Gviz)
-library(biomaRt) 
-
 shinyUI(fluidPage(
   
   titlePanel("Gviz app"),
@@ -11,19 +7,18 @@ shinyUI(fluidPage(
       
       conditionalPanel(
         'input.dataset === "Gene data"',
-        textInput("gene", 
-                  label = h3("Gene name"), 
-                  value = ""
-        ),
-        helpText("E.g. LDLR or ENSG00000130164"),
         radioButtons("filter", 
                      label = h3("Filtering by..."),
                      choices = list("HGNC symbol" = 1, "Ensembl ID" = 2), 
                      selected = 1
         ),
-        
+        textInput("gene", 
+                  label = h3("Gene name"), 
+                  value = ""
+        ),
+        helpText("E.g. LDLR or ENSG00000130164"),
         radioButtons("version", 
-                     label = h3("Ensembl version"),
+                     label = h3("Ensembl build"),
                      choices = list("GRCh37" = 1, "GRCh38" = 2), 
                      selected = 1
         ),
@@ -36,11 +31,12 @@ shinyUI(fluidPage(
         
         checkboxGroupInput('tracks_to_plot',
                            'Tracks to plot:',
-                           c("IdeogramTrack", "GenomeAxisTrack", "GeneRegionTrack"), 
-                           selected =  c("IdeogramTrack", "GenomeAxisTrack", "GeneRegionTrack"))
+                           c("IdeogramTrack", "GenomeAxisTrack", "GeneRegionTrack", "PlotTrack"), 
+                           selected =  c("IdeogramTrack", "GenomeAxisTrack", "GeneRegionTrack")
+                           ),
+        uiOutput("conditional_plotTrack")
       )
     ),
-    
     mainPanel(
       tabsetPanel(
         id='dataset',
