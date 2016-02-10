@@ -11,11 +11,11 @@ shinyServer(
     # shinyFileChoose(input, 'analysis_file', session = session, roots = roots, filetypes=('csv'))
     
     getData <- reactive({
+      analysis_file <- input$analysis_file
       #file_path  <- parseFilePaths(roots, input$analysis_file)
       #read.csv(as.character(file_path$datapath), header = T)
-      if (is.null(input$analysis_file))
-        return(NULL)
-      read.csv(input$analysis_file$datapath, header = T)
+      if (is.null(analysis_file))return(NULL)
+      read.csv(analysis_file$datapath, header = T)
     })
     
     output$variables_list <- renderUI({
@@ -35,30 +35,84 @@ shinyServer(
       min_imc=min(getData()$Imc)
       max_imc=max(getData()$Imc)
       sliderInput("imc", "Body mass index", min=min_imc, max=max_imc, value=c(min_imc, max_imc), step = 0.01)
-      
     })
     
     output$boxplot <- renderPlot({
-
-      if (is.null(getData())) return(NULL)
-      #DMbio <- read.csv("/home/asj/winbioinfo/users/asj/projects/bioclinic/cleaning_and_EDA_DMbio/tidy_data/DMbio.csv", header = T)
       DMbio <- getData()
+      validate(need(DMbio != "", label = "data set"))
       
+      sex <- input$sex
+      age <- input$age
+      imc <- input$imc
+      variable <- input$variable
+      
+      
+      #DMbio <- read.csv("/home/asj/winbioinfo/users/asj/projects/bioclinic/cleaning_and_EDA_DMbio/tidy_data/DMbio.csv", header = T)
+      
+      #Time points and sex are factors
       DMbio$Time_points <- as.factor(DMbio$Time_points)
       DMbio$Sexo <- as.factor(DMbio$Sexo)
+      
+      #Adding new column with colour info by sex
+      ##levels(DMbio) <- c(0, 1, 9)
       DMbio$Colors <- ifelse(DMbio$Sexo == 0, 0, 1)
       
-      DMbio[DMbio$Edad <= min(input$age) | DMbio$Edad >= max(input$age),]$Colors <- 9
-      DMbio[DMbio$Imc <= min(input$imc) | DMbio$Imc >= max(input$imc),]$Colors <- 9
+      #If sex is not selected, the color is grey
+      if (sex == "Male"){
+        #Grey colour for females
+        DMbio[DMbio$Sexo == 1,]$Colors <- 9
+      }else if(sex == "Female"){
+        #Grey colour for males
+        DMbio[DMbio$Sexo == 0,]$Colors <- 9
+      }
       
-      p <- ggplot(DMbio, aes_string("Time_points", input$variable)) + facet_grid(Sample_Group~.)
-      ##input$variable needs aes_string
+      #Grey colour for samples out of ranges of age and imc
+      if(nrow(DMbio[DMbio$Edad < min(age) | DMbio$Edad > max(age),]) > 0){
+        DMbio[DMbio$Edad < min(age) | DMbio$Edad > max(age),]$Colors <- 9
+      }
       
-      p_box <- p + geom_violin() + geom_point(aes(size = 1, color=factor(Colors)), alpha = 0.7) +
-        scale_colour_manual(values = c("#20B2AA", "#FF0000", "#D3D3D3"))
+      if(nrow(DMbio[DMbio$Imc < min(imc) | DMbio$Imc > max(imc),]) > 0){
+        DMbio[DMbio$Imc < min(imc) | DMbio$Imc > max(imc),]$Colors <- 9
+      }
+      
+      #Create a custom color scale
+      myColors <- c("#20B2AA", "#FF6347", "#C0C0C0")
+      names(myColors) <- c(0, 1, 9)
+      colScale <- scale_colour_manual(name = "Colors", values = myColors)
+      
+      p <- ggplot(DMbio, aes_string("Time_points", variable)) + facet_grid(Sample_Group~.) ##variable needs aes_string
+      p_box <- p + geom_violin() + geom_point(aes(size = 1, color=factor(Colors)), alpha = 0.7) + colScale
       
       print(p_box)
       
     })
-  }
-)
+    
+    output$x_axis <- renderUI({
+      if (is.null(getData())) return(NULL)
+      selectInput("x_axis", "X axis variable:", as.vector(names(getData())))
+    })
+    
+    output$y_axis <- renderUI({
+      if (is.null(getData())) return(NULL)
+      selectInput("y_axis", "Y axis variable:", as.vector(names(getData())))
+    })
+    
+    output$scatterplot <- renderPlot({
+      DMbio <- getData()
+      x_axis <- input$x_axis
+      y_axis <- input$y_axis
+      
+      #We cut HOMA values into classes
+      cutpoints_homa <- quantile(DMbio$HOMA, seq(0,1,length=5), na.rm = T)
+      
+      DMbiobis <- DMbio
+      DMbiobis$HOMA_cut <- cut(DMbio$HOMA, cutpoints_homa)
+      
+      #Plotting
+      gluco_insu_homa <- ggplot(DMbiobis, aes_string(x_axis, y_axis)) + facet_grid(HOMA_cut ~ Time_points, margins = T)
+      gluco_insu_homascatter <- gluco_insu_homa + geom_point(aes(colour = Sample_Group), size = 2)
+      
+      print(gluco_insu_homascatter)
+      
+    })
+  })
