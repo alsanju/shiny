@@ -3,12 +3,10 @@ library("shiny")
 library("shinyFiles")
 library("ggplot2")
 
+`%then%` <- shiny:::`%OR%`
+
 shinyServer(
   function(input,output, session){
-    
-    #roots <- c(wd='/home')
-    # roots <- c(wd='/home/asj/winbioinfo/users/asj/projects/bioclinic/')
-    # shinyFileChoose(input, 'analysis_file', session = session, roots = roots, filetypes=('csv'))
     
     getData <- reactive({
       analysis_file <- input$analysis_file
@@ -16,6 +14,11 @@ shinyServer(
       #read.csv(as.character(file_path$datapath), header = T)
       if (is.null(analysis_file))return(NULL)
       read.csv(analysis_file$datapath, header = T)
+    })
+    
+    output$index_message <- renderText({
+      validate(need(getData() != "", label = "Data set"))
+      "Now you can perform your data exploration!!"
     })
     
     output$variables_list <- renderUI({
@@ -37,15 +40,26 @@ shinyServer(
       sliderInput("imc", "Body mass index", min=min_imc, max=max_imc, value=c(min_imc, max_imc), step = 0.01)
     })
     
+    output$sex_option <- renderUI({
+      if (is.null(getData())) return(NULL)
+      radioButtons("sex", 'Sex', choices = c("All", "Male", "Female"), selected = c("All"))
+    })
+    
+    output$helpmessage <- renderUI({
+      if (is.null(getData())) return(NULL)
+      helpText("Underweight:  <18.5, Normal Range: 18.5-24.99, Moderately obsese: >25, Severely Obese: >30")
+    })
+    
     output$boxplot <- renderPlot({
       DMbio <- getData()
-      validate(need(DMbio != "", label = "data set"))
-      
       sex <- input$sex
       age <- input$age
       imc <- input$imc
       variable <- input$variable
       
+      validate(need(DMbio != "", "Please, select a data set") %then%
+               need(input$variable != "", "Please, wait") ##TODO with time
+               )
       
       #DMbio <- read.csv("/home/asj/winbioinfo/users/asj/projects/bioclinic/cleaning_and_EDA_DMbio/tidy_data/DMbio.csv", header = T)
       
@@ -99,6 +113,10 @@ shinyServer(
     
     output$scatterplot <- renderPlot({
       DMbio <- getData()
+      validate(need(DMbio != "", "Please, select a data set") %then%
+               need(input$x_axis != "", "Please, wait") ##TODO with time
+      )
+      
       x_axis <- input$x_axis
       y_axis <- input$y_axis
       
